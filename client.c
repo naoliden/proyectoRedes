@@ -22,14 +22,14 @@
 
 /* Función que inicializa el cliente en el port
 con ip */
-int initializeClient(char* ip, int port){
-	int clientSocket;
+int * initializeClient(char* ip, int port){
+	int * clientSocket;
   //char buffer[1024];
   struct sockaddr_in serverAddr;
   socklen_t addr_size;
   /*---- Creación del Socket. Se pasan 3 argumentos ----*/
 	/* 1) Internet domain 2) Stream socket 3) Default protocol (TCP en este caso) */
-  clientSocket = socket(PF_INET, SOCK_STREAM, 0);
+  *clientSocket = socket(PF_INET, SOCK_STREAM, 0);
   /*---- Configuración de la estructura del servidor ----*/
 	/* Address family = Internet */
   serverAddr.sin_family = AF_INET;
@@ -41,43 +41,103 @@ int initializeClient(char* ip, int port){
   memset(serverAddr.sin_zero, '\0', sizeof serverAddr.sin_zero);
   /*---- Conectar el socket al server ----*/
   addr_size = sizeof serverAddr;
-  connect(clientSocket, (struct sockaddr *) &serverAddr, addr_size);
+  connect(*clientSocket, (struct sockaddr *) &serverAddr, addr_size);
 	printf("Connected to server!\n");
-  /*---- Read the message from the server into the buffer ----*/
-
-  unsigned int buffer_size;
-
-  while(1){
-    recv(clientSocket, buffer_size, 4, 0);
-    printf("Mensaje size %d", buffer_size);
-    sleep(1);
-    unsigned char * buffer = malloc(sizeof(unsigned char) * buffer_size);
-    recv(clientSocket, buffer, buffer_size, 0);
-
-
-    // /*---- Print the received message ----*/
-    // printf("Data received: %s",buffer);
-    // strcpy(buffer,"Bye World\n");
-    // send(clientSocket,buffer,11,0);
-
-    free(buffer);
-  }
-  
+ 
 	return clientSocket;
 }
 
 
+void listen(int * clientSocket){
+   
+  /*---- Read the message from the server into the buffer ----*/
+
+  unsigned int buffer_size;
+  unsigned char msg_type;
+
+  while(1){
+    recv(*clientSocket, buffer_size, 4, 0);
+    printf("Mensaje size %d", buffer_size);
+    sleep(1);
+    unsigned char * buffer = malloc(sizeof(unsigned char) * buffer_size);
+    recv(*clientSocket, buffer, buffer_size, 0);
+    memcpy(msg_type, buffer[0], 1);
+
+    switch (msg_type)
+    {
+    case '2':
+      printf("Conexion al servidor exitosa");
+      break;
+
+    case '3':
+      /* code */
+      break;
+    case '5':
+      /* code */
+      break;
+    case '6':
+      /* code */
+      break;
+    case '7':
+      /* code */
+      break;
+    case '8':
+      /* code */
+      break;
+    case '9':
+      /* code */
+      break;
+    case '11':
+      /* code */
+      break;
+    case '12':
+      /* code */
+      break;
+    case '13':
+      /* code */
+      break;
+    case '14':
+      /* code */
+      break;
+    case '15':
+      /* code */
+      break;
+    case '17':
+      /* code */
+      break;
+    case '18':
+      /* code */
+      break;
+    case '20':
+      /* code */
+      break;
+    case '64':
+      /* code */
+    default:
+      printf("Id de mensaje invalido. Id: %s", msg_type);
+      break;
+    }
+
+    // /*---- Print the received message ----*/
+    printf("Data received: %s",buffer);
+    // strcpy(buffer,"Bye World\n");
+    // send(*clientSocket,buffer,11,0);
+
+    free(buffer);
+  }
+}
+
 void move();
 
 void send_message();
-
-void listen();
 
 void show_board();
 
 void end_turn();
 
 void chat_message();
+
+void write_log(char action);
 
 void disconnect(){
   printf("Desconectandose del juego");
@@ -109,6 +169,7 @@ int main(int argc, char const *argv[]){
 
   while(keepRunning){
     /* code */
+    listen
 
   }
 }
