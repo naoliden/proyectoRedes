@@ -37,16 +37,18 @@ int initializeServer(char* ip, int port){
 	/*---- Bindear la struct al socket ----*/
 	bind(welcomeSocket, (struct sockaddr *) &serverAddr, sizeof(serverAddr));
 
-	/*---- Listen del socket, con un máximo de 5 conexiones (solo como ejemplo) ----*/
-	if(listen(welcomeSocket,5)==0)
-		printf("Waiting for the second user to connect...\n");
-	else
-		printf("Error\n");
+	return welcomeSocket;
 
-	addr_size = sizeof serverStorage;
-	newSocket = accept(welcomeSocket, (struct sockaddr *) &serverStorage, &addr_size);
-	printf("Conected\n");
-	return newSocket;
+	/*---- Listen del socket, con un máximo de 5 conexiones (solo como ejemplo) ----*/
+	// if(listen(welcomeSocket,5)==0)
+	// 	printf("Waiting for the second user to connect...\n");
+	// else
+	// 	printf("Error\n");
+
+	// addr_size = sizeof serverStorage;
+	// newSocket = accept(welcomeSocket, (struct sockaddr *) &serverStorage, &addr_size);
+	// printf("Conected\n");
+	// return newSocket;
 }
 
 char* recieveMessage(int socket, char* message){
@@ -60,7 +62,14 @@ void sendMessage(int socket, char* message){
 }
 
 int main(){
-	int clients = 0;
+	serverSocket = initializeServer(IP, PORT);
+	while(listen(serverSocket) < 2){
+		printf("Waiting for the second user to connect...\n");
+		addr_size = sizeof serverStorage;
+		newSocket = accept(welcomeSocket, (struct sockaddr *) &serverStorage, &addr_size);
+
+	}
+	printf("Dos usuarios conectados");
 	
 
 
