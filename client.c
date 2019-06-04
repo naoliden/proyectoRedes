@@ -50,13 +50,16 @@ void escuchar(int clientSocket){
   /*---- Read the message from the server into the buffer ----*/
 
   unsigned char * buffer_size;
+  unsigned char type_aux[2];
   int msg_type;
 
   while(1){
 
-    recv(clientSocket, msg_type, sizeof(unsigned int), 0);
+    recv(clientSocket, type_aux, sizeof(unsigned int), 0);
     sleep(1);
     
+    msg_type = (unsigned int)type_aux * 256 + (unsigned int)type_aux
+
     recv(clientSocket, buffer_size, 4, 0);
     printf("Mensaje size %s", buffer_size);
     sleep(1);
