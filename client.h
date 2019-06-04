@@ -1,5 +1,5 @@
 // IP Anne
-#define IP "146.155.158.222"
+#define IP "0.0.0.0"
 // #define IP "0.0.0.0"
 
 // IP Norman
