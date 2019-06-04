@@ -58,7 +58,11 @@ void escuchar(int clientSocket){
     recv(clientSocket, type_aux, sizeof(unsigned char) * 2, 0);
     sleep(1);
     
+<<<<<<< HEAD
     msg_type = (unsigned int)type_aux * 65536 + (unsigned int)type_aux * 256 + (unsigned int)type_aux;
+=======
+    msg_type = ((unsigned int)type_aux * 256 + (unsigned int)type_aux);
+>>>>>>> b81bb3218b7f0ae651ad5158f18b165dcfc3e04d
 
     recv(clientSocket, buffer_size, 4, 0);
     printf("Mensaje size %s", buffer_size);
