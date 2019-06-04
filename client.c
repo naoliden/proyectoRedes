@@ -51,56 +51,57 @@ int initializeClient(char* ip, int port){
 	return clientSocket;
 }
 
-// void escuchar(int clientSocket){
+
+void escuchar(int clientSocket){
    
-//   /*---- Read the message from the server into the buffer ----*/
+  /*---- Read the message from the server into the buffer ----*/
 
-//   unsigned char * buffer_size;
-//   unsigned char type_aux[3];
-//   int msg_type;
+  unsigned char * buffer_size;
+  unsigned char type_aux[3];
+  int msg_type;
 
-//   while(1){
+  while(1){
 
-//     recv(clientSocket, type_aux, sizeof(unsigned char) * 2, 0);
-//     sleep(1);
+    recv(clientSocket, type_aux, sizeof(unsigned char) * 2, 0);
+    sleep(1);
     
-//     msg_type = (unsigned int)type_aux * 65536 + (unsigned int)type_aux * 256 + (unsigned int)type_aux;
+    msg_type = (unsigned int)type_aux * 65536 + (unsigned int)type_aux * 256 + (unsigned int)type_aux;
 
-//     recv(clientSocket, buffer_size, 4, 0);
-//     printf("Mensaje size %s", buffer_size);
-//     sleep(1);
+    recv(clientSocket, buffer_size, 4, 0);
+    printf("Mensaje size %s", buffer_size);
+    sleep(1);
 
-//     unsigned char * buffer = malloc(sizeof(unsigned char) * 10);
-//     // recv(clientSocket, buffer, buffer_size, 0);
+    unsigned char * buffer = malloc(sizeof(unsigned char) * 10);
+    // recv(clientSocket, buffer, buffer_size, 0);
 
-//     switch (msg_type){
-//       case 0:
-//         printf("Testing buffer:\n%s", buffer);
-//       case 2:
-//         printf("Conexion al servidor exitosa");
-//         break;
-//       case 3:
-//         /* code */
-//         break;
-//       case 5:
-//         /* code */
-//         break;
-//       case 6:
-//         /* code */
-//         break;
-//       default:
-//         printf("Id de mensaje invalido. Id: %d", msg_type);
-//         break;
-//     }
+    switch (msg_type){
+      case 0:
+        printf("Testing buffer:\n%s", buffer);
+      case 2:
+        printf("Conexion al servidor exitosa");
+        break;
+      case 3:
+        /* code */
+        break;
+      case 5:
+        /* code */
+        break;
+      case 6:
+        /* code */
+        break;
+      default:
+        printf("Id de mensaje invalido. Id: %d", msg_type);
+        break;
+    }
 
-//     // /*---- Print the received message ----*/
-//     printf("Data received: %s",buffer);
-//     // strcpy(buffer,"Bye World\n");
-//     // send(*clientSocket,buffer,11,0);
+    // /*---- Print the received message ----*/
+    printf("Data received: %s",buffer);
+    // strcpy(buffer,"Bye World\n");
+    // send(*clientSocket,buffer,11,0);
 
-//     free(buffer);
-//   }
-// }
+    free(buffer);
+  }
+}
 
 void move();
 

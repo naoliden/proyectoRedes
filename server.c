@@ -50,27 +50,21 @@ int initializeServer(char* ip, int port){
 }
 
 char* recieveMessage(int socket, char* message){
-  printf("Waiting message... ♔ \n");
-  recv(socket, message, 1024, 0);
-  return message;
+	printf("Waiting message... ♔ \n");
+	recv(socket, message, 1024, 0);
+	return message;
 }
 
 void sendMessage(int socket, char* message){
-  send(socket, message, 1024,0);
+	send(socket, message, 1024,0);
 }
 
-
 int main(){
-	int socket = initializeServer(IP, PORT);
+	int clients = 0;
+	
 
-	while (1) {
-	char* message = malloc(sizeof(char)*1024);
-	char* msg = recieveMessage(socket, message);
-	printf(msg, "%s\n");
-	printf("\nYour Message: ");
-	scanf("%s", msg);
-	printf("\n");
-	sendMessage(socket, msg);
 
-	}
+
+
+
 }
