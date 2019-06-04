@@ -6,6 +6,8 @@
 //fonction pour comparer deux strings : renvoie 0 si les valeurs sont égales
 //et -1 sinon
 
+#HELLO PÅ DO
+
 int compare_strings(char a[], char b[])
 {
     int c = 0;
