@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include  <signal.h>
+#include <signal.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -11,14 +11,9 @@
 
 #include "client.h"
 
-// IP Anne
-#define IP "146.155.158.222"
-// #define IP "0.0.0.0"
 
-// IP Norman
-//#define IP "146.155.158.10"
-#define PORT 8080
-
+static volatile sig_atomic_t keepRunning = 1;
+char c;
 
 /* Función que inicializa el cliente en el port
 con ip */
@@ -50,12 +45,12 @@ int * initializeClient(char* ip, int port, int * clientSocket){
 }
 
 
-void listen(int * clientSocket){
+void escuchar(int * clientSocket){
    
   /*---- Read the message from the server into the buffer ----*/
 
-  unsigned int buffer_size;
-  unsigned char msg_type;
+  unsigned int * buffer_size;
+  unsigned char * msg_type;
 
   while(1){
 
@@ -66,10 +61,10 @@ void listen(int * clientSocket){
     printf("Mensaje size %d", buffer_size);
     sleep(1);
 
-    unsigned char * buffer = malloc(sizeof(unsigned char) * buffer_size);
+    unsigned char * buffer = malloc(sizeof(unsigned char) * *buffer_size);
     recv(*clientSocket, buffer, buffer_size, 0);
 
-    switch (msg_type){
+    switch (*msg_type){
       case '0':
         printf("Testing buffer:\n%s", buffer);
       case '2':
@@ -120,7 +115,7 @@ void listen(int * clientSocket){
       case '64':
         /* code */
       default:
-        printf("Id de mensaje invalido. Id: %s", msg_type);
+        printf("Id de mensaje invalido. Id: %s", *msg_type);
         break;
     }
 
@@ -147,17 +142,12 @@ void write_log(char action);
 
 void disconnect(){
   printf("Desconectandose del juego");
-  // TODO enviar un mensaje de desconexion al servidor
-
   keepRunning = 0;
   exit(0);
 }
 
 
-static volatile sig_atomic_t keepRunning = 1;
-char c;
-
-static void intHandler(int _) {
+void intHandler(int _) {
   (void)_;
   printf("Presionaste Ctrl-C\n Quieres abandonar el juego? [y/n] ");
   c = getchar();
@@ -175,7 +165,7 @@ int main(int argc, char const *argv[]){
 
   while(keepRunning){
     /* code */
-    listen(&clientSocket);
+    escuchar(&clientSocket);
 
   }
 }

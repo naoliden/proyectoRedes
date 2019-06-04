@@ -1,18 +1,21 @@
-#define IP "0.0.0.0"
+// IP Anne
+#define IP "146.155.158.222"
+// #define IP "0.0.0.0"
+
+// IP Norman
+//#define IP "146.155.158.10"
 #define PORT 8080
 
-
-typedef struct Pieces{
+typedef struct Piece{
 	int coordenadas[2];
 	int player;
 	int dama;
-
-} Pieces;
+} Piece;
 
 typedef struct Board{
 	unsigned char board[(8 + 7 * 3) ^ 2];
-	Pieces piezas[24];
-};
+	Piece piezas[24];
+} Board;
 
 typedef struct Message{
 	char id;
@@ -35,7 +38,7 @@ void send_message();
 void chat_message();
 
 /* Espera por el siguiente mensaje del servidor */
-void listen();
+void escuchar(int * clientSocket);
 
 /* Muestra el tablero */
 void show_board();
