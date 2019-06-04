@@ -26,19 +26,19 @@ typedef struct Message{
 
 
 /* Intenta conectarse con el servidor, si no puede imprime que no puede. */
-int * initializeClient(char* ip, int port, int * clientSocket);
+int initializeClient(char* ip, int port);
 
 /* Envia un mensaje al servidor con la posicion a la que se quiere mover la pieza */
 void move();
 
 /* Envia una mensaje al servidor */
-void send_message();
+void send_message(int clientSocket, char * mensaje);
 
 /* Crea un mensaje de chat para enviar */
 void chat_message();
 
 /* Espera por el siguiente mensaje del servidor */
-void escuchar(int * clientSocket);
+void escuchar(int clientSocket);
 
 /* Muestra el tablero */
 void show_board();
