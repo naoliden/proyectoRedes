@@ -1,6 +1,6 @@
 // IP Anne
-#define IP "146.155.158.222"
-// #define IP "0.0.0.0"
+// #define IP "146.155.158.222"
+#define IP "0.0.0.0"
 
 // IP Norman
 //#define IP "146.155.158.10"
@@ -24,6 +24,10 @@ typedef struct Message{
 
 } Message;
 
+
+char* recieveMessage(int socket, char* message);
+
+void sendMessage(int socket, char* message);
 
 /* Intenta conectarse con el servidor, si no puede imprime que no puede. */
 int initializeClient(char* ip, int port);
