@@ -22,9 +22,11 @@
 
 /* Función que inicializa el cliente en el port
 con ip */
-int * initializeClient(char* ip, int port){
-	int * clientSocket;
+int * initializeClient(char* ip, int port, int * clientSocket){
+	
+  // int * clientSocket;
   //char buffer[1024];
+
   struct sockaddr_in serverAddr;
   socklen_t addr_size;
   /*---- Creación del Socket. Se pasan 3 argumentos ----*/
@@ -56,66 +58,70 @@ void listen(int * clientSocket){
   unsigned char msg_type;
 
   while(1){
+
+    recv(*clientSocket, msg_type, sizeof(unsigned char), 0);
+    sleep(1);
+    
     recv(*clientSocket, buffer_size, 4, 0);
     printf("Mensaje size %d", buffer_size);
     sleep(1);
+
     unsigned char * buffer = malloc(sizeof(unsigned char) * buffer_size);
     recv(*clientSocket, buffer, buffer_size, 0);
-    memcpy(msg_type, buffer[0], 1);
 
-    switch (msg_type)
-    {
-    case '2':
-      printf("Conexion al servidor exitosa");
-      break;
-
-    case '3':
-      /* code */
-      break;
-    case '5':
-      /* code */
-      break;
-    case '6':
-      /* code */
-      break;
-    case '7':
-      /* code */
-      break;
-    case '8':
-      /* code */
-      break;
-    case '9':
-      /* code */
-      break;
-    case '11':
-      /* code */
-      break;
-    case '12':
-      /* code */
-      break;
-    case '13':
-      /* code */
-      break;
-    case '14':
-      /* code */
-      break;
-    case '15':
-      /* code */
-      break;
-    case '17':
-      /* code */
-      break;
-    case '18':
-      /* code */
-      break;
-    case '20':
-      /* code */
-      break;
-    case '64':
-      /* code */
-    default:
-      printf("Id de mensaje invalido. Id: %s", msg_type);
-      break;
+    switch (msg_type){
+      case '0':
+        printf("Testing buffer:\n%s", buffer);
+      case '2':
+        printf("Conexion al servidor exitosa");
+        break;
+      case '3':
+        /* code */
+        break;
+      case '5':
+        /* code */
+        break;
+      case '6':
+        /* code */
+        break;
+      case '7':
+        /* code */
+        break;
+      case '8':
+        /* code */
+        break;
+      case '9':
+        /* code */
+        break;
+      case '11':
+        /* code */
+        break;
+      case '12':
+        /* code */
+        break;
+      case '13':
+        /* code */
+        break;
+      case '14':
+        /* code */
+        break;
+      case '15':
+        /* code */
+        break;
+      case '17':
+        /* code */
+        break;
+      case '18':
+        /* code */
+        break;
+      case '20':
+        /* code */
+        break;
+      case '64':
+        /* code */
+      default:
+        printf("Id de mensaje invalido. Id: %s", msg_type);
+        break;
     }
 
     // /*---- Print the received message ----*/
@@ -164,12 +170,12 @@ static void intHandler(int _) {
 int main(int argc, char const *argv[]){
 
   signal(SIGINT, intHandler);
-  
-  initializeClient(IP, PORT);
+  int clientSocket;
+  initializeClient(IP, PORT, &clientSocket);
 
   while(keepRunning){
     /* code */
-    listen
+    listen(&clientSocket);
 
   }
 }
