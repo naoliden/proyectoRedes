@@ -50,15 +50,15 @@ void escuchar(int clientSocket){
   /*---- Read the message from the server into the buffer ----*/
 
   unsigned char * buffer_size;
-  unsigned char type_aux[2];
+  unsigned char type_aux[3];
   int msg_type;
 
   while(1){
 
-    recv(clientSocket, type_aux, sizeof(unsigned int), 0);
+    recv(clientSocket, type_aux, sizeof(unsigned char) * 2, 0);
     sleep(1);
     
-    msg_type = (unsigned int)type_aux * 256 + (unsigned int)type_aux
+    msg_type = (unsigned int)type_aux * 65536 + (unsigned int)type_aux * 256 + (unsigned int)type_aux;
 
     recv(clientSocket, buffer_size, 4, 0);
     printf("Mensaje size %s", buffer_size);
@@ -68,27 +68,18 @@ void escuchar(int clientSocket){
     // recv(clientSocket, buffer, buffer_size, 0);
 
     switch (msg_type){
-      case '0':
+      case 0:
         printf("Testing buffer:\n%s", buffer);
-      case '2':
+      case 2:
         printf("Conexion al servidor exitosa");
         break;
-      case '3':
+      case 3:
         /* code */
         break;
-      case '5':
+      case 5:
         /* code */
         break;
-      case '6':
-        /* code */
-        break;
-      case '7':
-        /* code */
-        break;
-      case '8':
-        /* code */
-        break;
-      case '9':
+      case 6:
         /* code */
         break;
       default:
@@ -140,8 +131,8 @@ int main(int argc, char const *argv[]){
 
   signal(SIGINT, intHandler);
   int clientSocket = initializeClient(IP, PORT);
-  printf("conectado? ");
-  send_message(clientSocket, "hola");
+  printf("conectado?\n");
+  // send_message(clientSocket, "hola");
   while(keepRunning){
     // escuchar(clientSocket);
 
