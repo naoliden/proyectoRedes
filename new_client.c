@@ -6,8 +6,6 @@
 //fonction pour comparer deux strings : renvoie 0 si les valeurs sont égales
 //et -1 sinon
 
-#HELLO PÅ DO
-
 int compare_strings(char a[], char b[])
 {
     int c = 0;
@@ -36,7 +34,7 @@ int main() {
     clientSocket = socket(PF_INET, SOCK_STREAM, 0);
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_port = htons(7891);
-    serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
+    serverAddr.sin_addr.s_addr = inet_addr("10.201.145.158");
     memset(serverAddr.sin_zero, '\0', sizeof serverAddr.sin_zero);
     addr_size = sizeof serverAddr;
     
