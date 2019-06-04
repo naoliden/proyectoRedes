@@ -14,7 +14,7 @@
 #define PORT 8080
 
 
-int initializeServer(char* ip, int port){
+int initializeServer(char* ip, int port, ){
 	int welcomeSocket, newSocket;
 	struct sockaddr_in serverAddr;
 	struct sockaddr_storage serverStorage;
@@ -62,11 +62,15 @@ void sendMessage(int socket, char* message){
 }
 
 int main(){
-	serverSocket = initializeServer(IP, PORT);
+
+	struct sockaddr_in serverAddr;
+	struct sockaddr_storage serverStorage;
+	serverSocket = initializeServer(IP, PORT, &serverAddr, &serverStorage);
+	addr_size = sizeof serverStorage;
+	newSocket = accept(welcomeSocket, (struct sockaddr *) &serverStorage, &addr_size);
+	
 	while(listen(serverSocket) < 2){
 		printf("Waiting for the second user to connect...\n");
-		addr_size = sizeof serverStorage;
-		newSocket = accept(welcomeSocket, (struct sockaddr *) &serverStorage, &addr_size);
 
 	}
 	printf("Dos usuarios conectados");
