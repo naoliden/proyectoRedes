@@ -42,7 +42,7 @@ int main() {
     connect(clientSocket, (struct sockaddr *) &serverAddr, addr_size);
     
     //premier message du Client1
-    printf("Client 1 : ");
+    recv(clientSocket, buffer, 1024, 0);
     scanf(" %[^\n]s", buffer);
     send(clientSocket,buffer,sizeof buffer - 1,0);
     
