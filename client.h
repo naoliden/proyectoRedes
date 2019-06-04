@@ -23,7 +23,7 @@ typedef struct Message{
 
 
 /* Intenta conectarse con el servidor, si no puede imprime que no puede. */
-int * initializeClient(char* ip, int port);
+int * initializeClient(char* ip, int port, int * clientSocket);
 
 /* Envia un mensaje al servidor con la posicion a la que se quiere mover la pieza */
 void move();
