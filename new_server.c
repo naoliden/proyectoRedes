@@ -52,20 +52,13 @@ int initializeServer(char* ip, int port){
 		printf("Error\n");
 
 	addr_size = sizeof serverStorage;
-	// Conexiones conexiones;
-	// Client c1;
-	// Client c2;
 
   // Servidor queda bloqueado aquí hasta que alguien se conecte.
 	newSocket = accept(welcomeSocket, (struct sockaddr *) &serverStorage, &addr_size);
 	printf("Client 1 has connected to me!\n");
 
-	// c1.clientSocket = newSocket
-	// conexiones.p1 = c1;
-
 	// newSocket = accept(welcomeSocket, (struct sockaddr *) &serverStorage, &addr_size);
 	// printf("Client 1 has connected to me!\n");
-
 
 	return newSocket;
 }
@@ -87,10 +80,6 @@ char* receiveMessage(int socket){
   printf("The Message is: %s\n", message);
   printf("#############################\n");
 
-  Message msg;
-  msg.id = (int)ID;
-  msg.size = (int)payloadSize;
-  msg.payload = message;
   // return msg;
   return message;
 }
@@ -128,30 +117,7 @@ void print_package(char * package){
   printf("\n");
   */
 }
-// void listen_clients(int * welcomeSocket, Client* clientOne, Client* clientTwo){
 
-// 	/*---- Escuchar sockets alternadamente ----*/
-// 	printf("Clientes conectados\n");
-// 	int turno_jugador = 1;
-
-// 	while(1){
-
-// 		char* message = malloc(sizeof(char)*1024);
-// 		char* msg = recieveMessage(*welcomeSocket, message);
-// 		if (turno_jugador == 1) {
-// 			/*---- Escuchar jugador 1 hasta que envie mensaje de end_turn() ----*/
-// 			sendMessage(clientTwo->clientSocket, msg);
-// 			turno_jugador = 2;
-// 		} else {
-// 			/*---- Escuchar jugador 2 hasta que envie mensaje de end_turn() ----*/
-// 			sendMessage(clientOne->clientSocket, msg);
-// 			turno_jugador = 1;
-// 		}
-// 		free(message);
-
-// 	}
-
-// }
 
 void handle_command(int * welcomeSocket, Client* clientOne, Client* clientTwo){
 
@@ -160,11 +126,11 @@ void handle_command(int * welcomeSocket, Client* clientOne, Client* clientTwo){
 
 
 static void sig_handler(int _){
-    (void)_;
+  (void)_;
 	printf("\nPresionaste Ctrl-C?\nQuieres salir? [y/n] ");
 	char c = getchar();
 	if (c == 'y' || c == 'Y'){
-    	keep_running = 0;
+		keep_running = 0;
 		exit(0);
 	}
 }
@@ -182,6 +148,7 @@ int main(int argc, char const *argv[]){
 		// accept_connections(&welcomeSocket, clientOne, clientTwo);
 		// listen_clients(&welcomeSocket, clientOne, clientTwo);
 
+    int socket = initializeServer(IP, PORT);
 
 		char* msg = receiveMessage(socket);
 		// Pedimos un mensaje al servidor
