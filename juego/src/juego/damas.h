@@ -39,3 +39,6 @@ bool valid(Game* juego, int row1, int col1, int row2, int col2);
 
 //realiza el movimiento, primero valida si es o no correcto
 void do_move(Game* juego, int row1, int col1, int row2, int col2);
+
+// Indica si existen movimientos validos para el jugador que le toca
+bool moves(Game* juego);

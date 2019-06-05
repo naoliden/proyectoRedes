@@ -25,7 +25,7 @@ int main()
     scanf("%d,%d",&row1, &col1);
     printf("ingrese fila de donde quiere llegar\n");
     scanf("%d,%d",&row2, &col2);
-    do_move(mi_juego, row1,col1,row2,col2);
+    if (moves(mi_juego)) do_move(mi_juego, row1,col1,row2,col2);
     //printf("detener? 1 para detener\n");
     //scanf("%d",&continuar);
   }
