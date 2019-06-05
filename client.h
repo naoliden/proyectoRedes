@@ -1,10 +1,10 @@
 // IP Anne
 // #define IP "146.155.158.222"
-#define IP "0.0.0.0"
+#define IP "10.201.149.195"
 
 // IP Norman
 //#define IP "146.155.158.10"
-#define PORT 8090
+#define PORT 4455
 
 typedef struct Piece{
 	int coordenadas[2];
@@ -53,6 +53,3 @@ void end_turn();
 
 /* Envia mensaje de desconexion */
 void disconnect();
-
-
-

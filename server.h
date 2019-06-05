@@ -4,8 +4,8 @@
 // IP Norman
 //#define IP "146.155.158.10"#define PORT 8080
 
-#define IP "0.0.0.0"
-#define PORT 8060
+#define IP "10.201.149.195"
+#define PORT 4455
 
 
 typedef struct Client{

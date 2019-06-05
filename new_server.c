@@ -12,7 +12,7 @@
 // #include "math.h"
 
 // pthread_t threadOne, threadTwo;
-// printf("main: begin [counter = %d] [%lx]\n", counter, 
+// printf("main: begin [counter = %d] [%lx]\n", counter,
 	//    (unsigned long) &counter);
 
 static volatile sig_atomic_t keep_running = 1;
@@ -20,7 +20,7 @@ static volatile sig_atomic_t keep_running = 1;
 
 
 int initializeServer(char* ip, int port){
-	int welcomeSocket, newSocket;
+	int welcomeSocket, newSocket, newSocket2;
 	struct sockaddr_in serverAddr;
 	struct sockaddr_storage serverStorage;
 	socklen_t addr_size;
@@ -31,7 +31,7 @@ int initializeServer(char* ip, int port){
 	welcomeSocket = socket(PF_INET, SOCK_STREAM, 0);
 	setsockopt(welcomeSocket, SOL_SOCKET, SO_REUSEADDR, (char*)&iSetOption, sizeof(iSetOption));
     // Pueden buscar como configurar el socket para que libere el puerto una vez que se termine el programa
-  
+
 	/*---- Configuración de la estructura del servidor ----*/
 	/* Address family = Internet */
 	serverAddr.sin_family = AF_INET;
@@ -52,13 +52,13 @@ int initializeServer(char* ip, int port){
 		printf("Error\n");
 
 	addr_size = sizeof serverStorage;
-
+	addr_size_2 = sizeof serverStorage;
   // Servidor queda bloqueado aquí hasta que alguien se conecte.
 	newSocket = accept(welcomeSocket, (struct sockaddr *) &serverStorage, &addr_size);
 	printf("Client 1 has connected to me!\n");
 
-	// newSocket = accept(welcomeSocket, (struct sockaddr *) &serverStorage, &addr_size);
-	// printf("Client 1 has connected to me!\n");
+	newSocket2 = accept(welcomeSocket, (struct sockaddr *) &serverStorage, &addr_size_2);
+	printf("Client 2 has connected to me!\n");
 
 	return newSocket;
 }
@@ -69,7 +69,7 @@ char* receiveMessage(int socket){
   recv(socket, &ID, 1, 0);
   printf("\n####### Paquete recibido ####\n");
   printf("The ID is: %d\n", ID);
-  
+
   char payloadSize;
   recv(socket, &payloadSize, 1, 0);
   printf("The PayloadSize is: %d\n", payloadSize);
@@ -106,7 +106,7 @@ void print_package(char * package){
   printf("%d ", package[0]);
   printf("%d ", package[1]);
   printf("%s\n", &package[2]);
-  
+
   /*
   // No hay diferencia entre un char o un int en la forma en que se guardan en memoria -> '01001110'
   // La diferencia es lo que representa, osea cómo yo lo interpreto y uso (letra o entero)
@@ -158,7 +158,7 @@ int main(int argc, char const *argv[]){
 		printf("\n");
 		printf("   Ingresaste: %s\n", input);
 
-		int msgLen = calculate_length(input); 
+		int msgLen = calculate_length(input);
 		// no se debería enviar en el payload el caracter nulo al final del input. Ojo que al imprimir
 		// el string sin este caracter les aparecerá un simbolo raro al final
 
@@ -166,12 +166,12 @@ int main(int argc, char const *argv[]){
 		package[0] = 19;
 		package[1] = msgLen;
 		strcpy(&package[2], input);
-		
+
 		// Imprimamos el paquete para ver cómo quedó
 		print_package(package);
 		sendMessage(socket, package);
 	}
-	
+
 	// free(clientOne);
 	// free(clientTwo);
 	return 0;
