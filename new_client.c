@@ -16,9 +16,11 @@ int initializeClient(char* ip, int port){
   int clientSocket;
   struct sockaddr_in serverAddr;
   socklen_t addr_size;
+  int iSetOption = 1;
 
   clientSocket = socket(PF_INET, SOCK_STREAM, 0);
-  
+  setsockopt(clientSocket, SOL_SOCKET, SO_REUSEADDR, (char*)&iSetOption, sizeof(iSetOption));
+
   /*---- Configuración de la estructura del servidor ----*/
 	/* Address family = Internet */
   serverAddr.sin_family = AF_INET;
@@ -57,11 +59,7 @@ char* receiveMessage(int socket){
   printf("The Message is: %s\n", message);
   printf("#############################\n");
 
-  Message msg;
-  msg.id = (int)ID;
-  msg.size = (int)payloadSize;
-  msg.payload = message;
-  // return msg;
+
   return message;
 }
 
@@ -114,31 +112,29 @@ static void sig_handler(int _){
 int main(int argc, char const *argv[]){
 
     signal(SIGINT, sig_handler);
-	// int clientSocket;
+	int clientSocket;
 	clientSocket = initializeClient(IP, PORT);	
-	while (keep_running) {
-      char input[255];
-      printf("\nEnter your message: ");
-      scanf("%s", input); 
-      printf("   Ingresaste: %s\n", input);
+	char input[255];
+	printf("\nEnter your message: ");
+	scanf("%s", input); 
+	printf("   Ingresaste: %s\n", input);
 
-      int msgLen = calculate_length(input);
-	  // Add two for id and size,
-	  // review, maybe one byte for size is not enough
-      char package[2+msgLen];
-      // ID
-      package[0] = 19;
-	  // el payloadSize
-      package[1] = msgLen;
-	  // mensaje
+	int msgLen = calculate_length(input);
+	// Add two for id and size,
+	// review, maybe one byte for size is not enough
+	char package[2+msgLen];
+	// ID
+	package[0] = 19;
+	// el payloadSize
+	package[1] = msgLen;
+	// mensaje
+	strcpy(&package[2], input);
+	print_package(package);
+	sendMessage(clientSocket, package);
+	
+	// Esperamos el mensaje del servidor
+	char * msg = receiveMessage(clientSocket);
+//   printf("%s\n", msg);
 
-      strcpy(&package[2], input);
-      print_package(package);
-      sendMessage(socket, package);
-      
-      // Esperamos el mensaje del servidor
-      char * msg = receiveMessage(socket);
-    //   printf("%s\n", msg);
-    }
 	return 0;
 }

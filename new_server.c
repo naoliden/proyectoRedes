@@ -138,15 +138,8 @@ static void sig_handler(int _){
 
 int main(int argc, char const *argv[]){
 	signal(SIGINT, sig_handler);
-	// Client * clientOne = malloc(sizeof(Client));
-	// Client * clientTwo = malloc(sizeof(Client));
 
 	while(keep_running){
-
-		// server_init(IP, PORT, &welcomeSocket, clientOne, clientTwo);
-		// printf("Server esperando conexiones ... ");
-		// accept_connections(&welcomeSocket, clientOne, clientTwo);
-		// listen_clients(&welcomeSocket, clientOne, clientTwo);
 
     int socket = initializeServer(IP, PORT);
 
