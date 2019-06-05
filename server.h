@@ -7,10 +7,6 @@
 #define IP "0.0.0.0"
 #define PORT 8060
 
-typedef struct Conexiones {
-	Client p1;
-	Client p2;
-} Conexiones;
 
 typedef struct Client{
 	int clientSocket;
@@ -18,6 +14,11 @@ typedef struct Client{
 	int connected;
 	char player_name[27];
 } Client;
+
+typedef struct Conexiones {
+	Client p1;
+	Client p2;
+} Conexiones;
 
 typedef struct Piece{
 	int coordenadas[2];
