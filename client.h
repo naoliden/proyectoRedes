@@ -4,7 +4,7 @@
 
 // IP Norman
 //#define IP "146.155.158.10"
-#define PORT 8080
+#define PORT 8090
 
 typedef struct Piece{
 	int coordenadas[2];
@@ -21,13 +21,14 @@ typedef struct Message{
 	char id;
 	char payload;
 	int size;
-
 } Message;
 
 
 char* recieveMessage(int socket, char* message);
 
 void sendMessage(int socket, char* message);
+
+static void sig_handler(int _);
 
 /* Intenta conectarse con el servidor, si no puede imprime que no puede. */
 int initializeClient(char* ip, int port);
@@ -52,8 +53,6 @@ void end_turn();
 
 /* Envia mensaje de desconexion */
 void disconnect();
-
-void intHandler(int _);
 
 
 

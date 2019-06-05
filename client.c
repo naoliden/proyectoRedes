@@ -120,7 +120,6 @@ void disconnect(){
   exit(0);
 }
 
-
 void intHandler(int _) {
   (void)_;
   printf("\nPresionaste Ctrl-C\n Quieres abandonar el juego? [y/n] ");

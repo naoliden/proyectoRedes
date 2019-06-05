@@ -14,10 +14,10 @@
 #define PORT 8080
 
 
-int initializeServer(char* ip, int port, ){
-	int welcomeSocket, newSocket;
-	struct sockaddr_in serverAddr;
-	struct sockaddr_storage serverStorage;
+int initializeServer(char* ip, int port, struct sockaddr_in * serverAddr){
+	int welcomeSocket;
+	// struct sockaddr_in serverAddr;
+	// struct sockaddr_storage serverStorage;
 	socklen_t addr_size;
 
 	/*---- Creación del Socket. Se pasan 3 argumentos ----*/
@@ -26,16 +26,16 @@ int initializeServer(char* ip, int port, ){
 
 	/*---- Configuración de la estructura del servidor ----*/
 	/* Address family = Internet */
-	serverAddr.sin_family = AF_INET;
+	serverAddr->sin_family = AF_INET;
 	/* Set port number */
-	serverAddr.sin_port = htons(port);
+	serverAddr->sin_port = htons(port);
 	/* Setear IP address como localhost */
-	serverAddr.sin_addr.s_addr = inet_addr(ip);
+	serverAddr->sin_addr.s_addr = inet_addr(ip);
 	/* Setear todos los bits del padding en 0 */
-	memset(serverAddr.sin_zero, '\0', sizeof serverAddr.sin_zero);
+	memset(serverAddr->sin_zero, '\0', sizeof serverAddr->sin_zero);
 
 	/*---- Bindear la struct al socket ----*/
-	bind(welcomeSocket, (struct sockaddr *) &serverAddr, sizeof(serverAddr));
+	bind(welcomeSocket, (struct sockaddr *) serverAddr, sizeof(serverAddr));
 
 	return welcomeSocket;
 
@@ -63,21 +63,47 @@ void sendMessage(int socket, char* message){
 
 int main(){
 
+	int turn = 1;
+	int cliente1;
+	int cliente2;
+	socklen_t addr_size;
+
 	struct sockaddr_in serverAddr;
 	struct sockaddr_storage serverStorage;
-	serverSocket = initializeServer(IP, PORT, &serverAddr, &serverStorage);
+	int serverSocket = initializeServer(IP, PORT, &serverAddr);
+
 	addr_size = sizeof serverStorage;
-	newSocket = accept(welcomeSocket, (struct sockaddr *) &serverStorage, &addr_size);
-	
-	while(listen(serverSocket) < 2){
+	cliente1 = accept(serverSocket, (struct sockaddr *) &serverStorage, &addr_size);
+
+	if(listen(serverSocket, 2) == 0 ){
 		printf("Waiting for the second user to connect...\n");
-
+		cliente2 = accept(serverSocket, (struct sockaddr *) &serverStorage, &addr_size);
+		printf("Cliente 2 aceptado\n");
+	} else {
+		printf("ERROR\n");
 	}
-	printf("Dos usuarios conectados");
-	
+	printf("Dos usuarios conectados\n");
 
-
-
-
+	while (1) {
+		if (turn == 1){
+			char* message = malloc(sizeof(char)*1024);
+			char* msg = recieveMessage(serverSocket, message);
+			printf(msg, "%s\n");
+			// printf("\nYour Message: ");
+			// scanf("%s", msg);
+			// printf("\n");
+			sendMessage(cliente2, msg);
+			turn = 2;
+		} else {
+			char* message = malloc(sizeof(char)*1024);
+			char* msg = recieveMessage(serverSocket, message);
+			printf(msg, "%s\n");
+			// printf("\nYour Message: ");
+			// scanf("%s", msg);
+			// printf("\n");
+			sendMessage(cliente1, msg);
+			turn = 1;
+		}
+	}
 
 }
