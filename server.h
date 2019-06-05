@@ -5,7 +5,7 @@
 //#define IP "146.155.158.10"#define PORT 8080
 
 #define IP "0.0.0.0"
-#define PORT 8060
+#define PORT 4005
 
 
 typedef struct Client{
@@ -33,17 +33,17 @@ typedef struct Board{
 
 typedef struct Message{
 	char id;
+	char size;
 	char payload;
-	int size;
 } Message;
 
 
-int initializeServer(char* ip, int port);
+Conexiones initializeServer(char* ip, int port);
 
 static void sig_handler(int _);
 
 void server_init(char* ip, int port, int* welcomeSocket, Client* clientOne, Client* clientTwo);
 
-char* recieveMessage(int socket, char* message);
+char * recieveMessage(int socket, char* message);
 
 void sendMessage(int socket, char* message);

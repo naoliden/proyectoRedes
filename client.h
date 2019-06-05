@@ -4,7 +4,7 @@
 
 // IP Norman
 //#define IP "146.155.158.10"
-#define PORT 8090
+#define PORT 4005
 
 typedef struct Piece{
 	int coordenadas[2];
