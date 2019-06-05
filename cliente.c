@@ -42,7 +42,7 @@ int initializeClient(char* ip, int port){
 	return clientSocket;
 }
 
-char* receiveMessage(int socket){
+Message * receiveMessage(int socket){
   printf("Waiting message... \n");
   // Esperamos a que llegue el primer byte, que corresponde al ID del paquete
   char ID;
@@ -61,14 +61,28 @@ char* receiveMessage(int socket){
   printf("The Message is: %s\n", message);
   printf("#############################\n");
 
+
+	Message * msg = malloc(sizeof(Message));
+	msg->id = ID;
+	msg->size = payloadSize;
+	msg->payload = calloc(payloadSize, sizeof(char));
+
+	memcpy(msg->payload, message, payloadSize);
+	
+	return msg;
+	
   // Aqui se las ingenian para ver como retornan todo. Puden retornar el paquete y separarlo afuera, o retornar una struct.
-  return message;
 }
 
-void sendMessage(int socket, char* package){
-  // Obtenemos el largo del payload para saber qué tamaño tiene el paquete y cuántos bytes debe enviar mi socket
-  int payloadSize = package[1];
-  send(socket, package, 2 + payloadSize, 0);
+void sendMessage(int socket, Message* msg){
+
+  int size_buffer = 2 + msg -> size;
+  char *buffer = calloc(size_buffer, sizeof(char));
+  buffer[0] = msg -> id; // *(buffer) = ...
+  buffer[1] = msg -> size; // *(buffer + 1) = ...
+  memcpy(buffer + 2, msg -> payload, msg -> size);
+
+  send(socket, buffer, size_buffer , 0);
 }
 
 int calculate_length(char * input){
@@ -85,51 +99,66 @@ void print_package(char * package){
   // Los primeros dos bytes los imprimimos como 'd' (números), porque así acordamos interpretarlos.
   printf("   Paquete es: ");
   printf("%d ", package[0]); printf("%d ", package[1]); printf("%s\n", &package[2]);
-  
-  /*
-  // No hay diferencia entre un char o un int en la forma en que se guardan en memoria -> '01001110'
-  // La diferencia es lo que representa, osea cómo yo lo interpreto y uso (letra o entero)
-  for (int i=0; i<5; i++){
-    // Si imprimimos cada caracter del mensaje como un numero, vemos su código ascii
-    printf("%d ", package[2+i]);
-  }
-  printf("\n");
-  */
+
 }
+
+void handle_command(Message * mensaje, int socket){
+	switch (mensaje->id){
+		case 0:
+			printf("testcase: %s", mensaje->id);
+			break;
+		case 19:
+			printf("Mensaje de chat:\n");
+			printf("%s", mensaje->payload);
+			break;
+		default:
+			printf("commando invalido");
+	}
+}
+
+void mensaje_chat(int socket){
+	char input[255];
+	printf("\nEnter your message: \n");
+	scanf("%[^\n]%*c", input);
+	printf("Ingresaste: %s\n", input);
+
+	Message * msg = malloc(sizeof(Message));
+	msg->size = 255;
+	msg->payload = calloc(255, sizeof(char));
+	memcpy(msg->payload, input, 255);
+	msg->id = 19;
+
+	sendMessage(socket, msg);
+}
+
 
 int main(int argc, char const *argv[])
 {
-	printf("I'm a Client\n");
+	printf("I'm a Cliente\n");
     int socket = initializeClient(IP, PORT);
+	char choice;
 
-    // Definimos un máximo de 10 intercambios para terminar el programa
-    int count = 0;
-    while (count<10) {
-      // Pedimos un mensaje al cliente
-      char input[100];
-      printf("\nEnter your message: ");
-      scanf("%s", input); // esta función termina la captura con el char nulo '\0' (0 si lo interpretas como número) cuando encuentra un espacio o salto de linea. Hay una decena de funciones similares. Investiguen!
-      printf("    Ingresaste: %s\n", input);
-
-      // Calculamos el largo del mensaje ingresado por el humano
-      int msgLen = calculate_length(input); //no se debería enviar el caracter nulo al final del input. Ojo que al imprimir el string sin este caracter les aparecerá un simbolo raro al final
-
-      // Armamos el paquete a enviar
-      char package[2+msgLen];
-      // Definimos el ID, el payloadSize y copiamos el mensaje
-      package[0] = 19;
-      package[1] = msgLen;
-      strcpy(&package[2], input);
-
-      // Imprimamos el paquete para ver cómo quedó
-      print_package(package);
-      
-      // Enviamos el paquete a través del socket
-      sendMessage(socket, package);
-  
-      // Esperamos el mensaje del servidor
-      char * msg = receiveMessage(socket);
-      //printf("%s\n", msg);
-    }
+    do {
+		printf("Menu\n\n");
+		printf("1. Chat\n");
+		printf("2. ---\n");
+		printf("3. Exit\n");
+		scanf("%d",&choice);
+		
+		switch (choice){
+			case 1:
+				mensaje_chat(socket);
+				break;
+			case 2:
+				break;
+			case 3:
+				printf("Goodbye\n"); 
+				break;
+			default:
+				printf("Wrong Choice. Enter again\n");
+				break;
+		} 
+	} while (choice != 3);
+	
 	return 0;
 }

@@ -33,8 +33,9 @@ typedef struct Board{
 
 typedef struct Message{
 	char id;
-	char size;
-	char payload;
+	unsigned char size;
+	char * payload;
+	char sender;
 } Message;
 
 
@@ -44,6 +45,8 @@ static void sig_handler(int _);
 
 void server_init(char* ip, int port, int* welcomeSocket, Client* clientOne, Client* clientTwo);
 
-char * recieveMessage(int socket, char* message);
+Message * recieveMessage(int socket, char* message);
 
-void sendMessage(int socket, char* message);
+void sendMessage(int socket, Message * message);
+
+void handle_command(Message * mensaje, Conexiones * conexiones);

@@ -69,7 +69,7 @@ Conexiones initializeServer(char* ip, int port){
 }
 
 
-char * receiveMessage(int socket){
+Message * receiveMessage(int socket){
 
   // Esperamos a que llegue el primer byte, que corresponde al ID del paquete
 	printf("Waiting message... \n");
@@ -81,35 +81,35 @@ char * receiveMessage(int socket){
 	// Recibimos el payload size en el siguiente byte
 	char payloadSize;
 	recv(socket, &payloadSize, 1, 0);
-	// printf("The PayloadSize is: %d\n", payloadSize);
+	printf("The PayloadSize is: %d\n", payloadSize);
 
 	// Recibimos el resto del paquete, según el payloadSize. Lo guardamos en un puntero de caracteres, porque no es necesario modificarlo
 	char * message = malloc(payloadSize);
 	recv(socket, message, payloadSize, 0);
-	// printf("The Message is: %s\n", message);
+	printf("The Message is: %s\n", message);
 	printf("#############################\n");
 
-	int size = atoi(payloadSize);
-	printf("size: %d\n", size);
+	// char * mensaje = malloc(2 + payloadSize);
 
-	char * mensaje = malloc(sizeof(char) * (2+size));
-	// mensaje[0] = atoi(&ID);
-	// mensaje[1] = size;
+	Message * msg = malloc(sizeof(Message));
+	msg->id = ID;
+	msg->size = payloadSize;
+	msg->payload = calloc(payloadSize, sizeof(char));
 
-	// memcpy(&mensaje[0], &ID, 1);
-	// memcpy(&mensaje[1], &payloadSize, 1);
+	memcpy(msg->payload, message, payloadSize);
 	
-	memcpy(mensaje, message, size);
-
-	printf("mensjae %s\n", mensaje);
-	// Aqui se las ingenian para ver como retornan todo. Puden retornar el paquete y separarlo afuera, o retornar una struct.
-  	return mensaje;
+	return msg;
 }
 
-void sendMessage(int socket, char* package){
+void sendMessage(int socket, Message* msg){
   // Obtenemos el largo del payload para saber qué tamaño tiene el paquete y cuántos bytes debe enviar mi socket
-  int payloadSize = package[1];
-  send(socket, package, 2 + payloadSize, 0);
+  int size_buffer = 2 + msg -> size;
+  char *buffer = calloc(size_buffer, sizeof(char));
+  buffer[0] = msg -> id; // *(buffer) = ...
+  buffer[1] = msg -> size; // *(buffer + 1) = ...
+  memcpy(buffer + 2, msg -> payload, msg -> size);
+
+  send(socket, buffer, size_buffer , 0);
 }
 
 int calculate_length(char * input){
@@ -126,26 +126,25 @@ void print_package(char * package){
   // Los primeros dos bytes los imprimimos como 'd' (números), porque así acordamos interpretarlos.
   printf("   Paquete es: ");
   printf("%d ", package[0]); printf("%d ", package[1]); printf("%s\n", &package[2]);
-  
-  /*
-  // No hay diferencia entre un char o un int en la forma en que se guardan en memoria -> '01001110'
-  // La diferencia es lo que representa, osea cómo yo lo interpreto y uso (letra o entero)
-  for (int i=0; i<5; i++){
-    // Si imprimimos cada caracter del mensaje como un numero, vemos su código ascii
-    printf("%d ", package[2+i]);
-  }
-  printf("\n");
-  */
 
 }
 
-void control(Message mensaje){
-	switch (mensaje.id){
+
+void handle_command(Message * mensaje, Conexiones * conexiones){
+	switch (mensaje->id){
+		case 0:
+			printf("testcase: %s", mensaje->id);
+			break;
 		case 19:
 			printf("Mensaje de chat\n");
+			if (mensaje->sender == 1){
+				sendMessage(conexiones->p2.clientSocket, mensaje);
+			} else {
+				sendMessage(conexiones->p1.clientSocket, mensaje);
+			}
 			break;
 		default:
-		printf("commando invalido");
+			printf("commando invalido");
 	}
 }
 
@@ -153,46 +152,59 @@ int main(int argc, char const *argv[])
 {
 	Conexiones conexiones;
 	conexiones = initializeServer(IP, PORT);
-	int turno = 1;
+	
+	Message * init_msg = malloc(sizeof(Message));
+	init_msg->id = 19;
+	init_msg->size = 10;
+	init_msg->payload = calloc(11, sizeof(char));
+	strcpy(init_msg->payload, "Bienvenido");
+	sendMessage(conexiones.p1.clientSocket, init_msg);
+	free(init_msg->payload);
+	free(init_msg);
 
+	// TODO NICKNAMES !
+
+	int turno = 1;
     while (1) {
 		if(turno == 1){
 			printf("Turno 1\n");
 
 			// Esperamos el mensaje del cliente
+			Message * msg = receiveMessage(conexiones.p1.clientSocket);
+			msg->sender = 1;
+			// printf("mensaje: %s", msg->payload);
 			
-			char * msg = receiveMessage(conexiones.p1.clientSocket);
+			handle_command(msg, &conexiones);
+			
+			
+			
+			// turno = 2;
 
-			printf("funciona\n");
-
-			printf("mensaje: %s", msg);
-
-			// Pedimos un mensaje al servidor
-			char input[100]; // definimos un arreglo estúpidamente grande
-			printf("\nEnter your Message: ");
-
-			scanf("%s", input);
-			printf("\n");
-			printf("   Ingresaste: %s\n", input);
-
-			// Calculamos el largo del mensaje ingresado por el humano
-			int msgLen = calculate_length(input); //no se debería enviar en el payload el caracter nulo al final del input. Ojo que al imprimir el string sin este caracter les aparecerá un simbolo raro al final
-
-			// Armamos el paquete a enviar
-			char package[2+msgLen];			
-			package[0] = 19;
-			package[1] = msgLen;
-			strcpy(&package[2], input); //debería copiar hasta encontrar un caracter nulo, osea los msgLen caracteres
-
-			// Imprimamos el paquete para ver cómo quedó
-			print_package(package);
-			sendMessage(conexiones.p1.clientSocket, package);
+			free(msg->payload);
+			free(msg);
 
 		}
 
 		if(turno == 2){
 			printf("Turno 2");
+
+			// Esperamos el mensaje del cliente
+			Message * msg = receiveMessage(conexiones.p2.clientSocket);
+			msg->sender = 2;
+			// printf("mensaje: %s", msg->payload);
+			
+			handle_command(msg, &conexiones);
+
+
+
+			turno = 1;
+
+			free(msg->payload);
+			free(msg);
+
 		}
+
+		printf("\n\nSe ha completado una ronda\n\n");
 
 	}
 	return 0;

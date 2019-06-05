@@ -19,14 +19,17 @@ typedef struct Board{
 
 typedef struct Message{
 	char id;
-	char payload;
-	int size;
+	unsigned char size;
+	char * payload;
+	char sender;
 } Message;
 
 
-char* recieveMessage(int socket, char* message);
+void handle_command(Message * mensaje, int socket);
 
-void sendMessage(int socket, char* message);
+Message * recieveMessage(int socket, char* message);
+
+void sendMessage(int socket, Message* msg);
 
 static void sig_handler(int _);
 
