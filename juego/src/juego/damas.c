@@ -15,8 +15,11 @@ Game* init_game(){
   juego -> turn = 0;
   juego -> termino = false;
   juego -> winner = 0;
+  juego ->count = 0;
   juego -> c_piezaso = 12;
   juego -> c_piezasx = 12;
+
+  //inicializamos la matriz con sus piezas
   for (int row=0; row<8; row++){
     for (int col=0; col<8; col++){
       int sum = row + col;
@@ -90,6 +93,9 @@ void do_move(Game* juego, int row1, int col1, int row2, int col2){
   // primero reviso si es valido el movimiento
   if (valid(juego, row1, col1, row2, col2)){
     int next = 1; // es 1 si no come una ficha y le toca al siguente, y 0 si come una ficha, por lo que puede seguir jugando
+    if (juego->c_piezaso != juego->c_piezasx) juego->count = 0; //se reinicia porque no hay empate
+    else juego->count ++; // si hay empate sumo uno, luego si cambia la cantidad de piezas se va a reiniciar
+
     // si come una ficha, saco la pieza que come y disminuyo la cantidad de piezas del contrincante
     if (row2 == row1-2){
       if(juego-> turn == 0) juego -> c_piezasx --; // si el blanco comio una pieza negra
@@ -97,7 +103,9 @@ void do_move(Game* juego, int row1, int col1, int row2, int col2){
       //actualizo el tablero (borro la pieza que comio)
       if (col2 == col1 -2) juego -> board[row1-1][col1-1] = 'b';
       else juego -> board[row1-1][col1+1] = 'b';
-      next = 0;
+      next = 0; //hago que le toque de nuevo
+      juego ->count = 0; //se reinicia el contador, porque vario la cantidad de piezas
+
     }
     else if (row2 == row1+2){
       if(juego-> turn == 0) juego -> c_piezasx --; // si el blanco comio una pieza negra
@@ -105,7 +113,8 @@ void do_move(Game* juego, int row1, int col1, int row2, int col2){
       //actualizo el tablero (borro la pieza que comio)
       if (col2 == col1 -2) juego -> board[row1+1][col1-1] = 'b';
       else juego -> board[row1+1][col1+1] = 'b';
-      next = 0;
+      next = 0; //hago que le toque de nuevo
+      juego ->count = 0; //se reinicia el contador, porque vario la cantidad de piezas
     }
     //cambio la pieza de posicion
     char valor = juego->board[row1][col1];
@@ -115,10 +124,28 @@ void do_move(Game* juego, int row1, int col1, int row2, int col2){
     else if (valor == 'o' && row2 == 0) juego->board[row2][col2] = 'O';
     else juego->board[row2][col2] = valor;
     printf("\n ---------------------------\n    MOVIMIENTO VALIDO\n ---------------------------\n");
+
+    //ajustamos el juego
+    //solo hacemo next si no no se comieron piezas
     if (next){
       if (juego->turn == 0) juego->turn =1;
       else juego->turn = 0;
     }
+    //si se acaban las piezas del jugador 0, gana el 1
+    if(juego->c_piezaso == 0){
+      juego->termino = true;
+      juego->winner = 1;
+    }
+    else if (juego->c_piezasx == 0){
+      juego->termino = true;
+      juego->winner =2;
+    }
+    else if (juego->count ==20){
+      juego ->termino = true;
+      juego->winner = 3; //tres para indicar empate
+    }
+
+    //mostramos tablero
     board_print(juego);
   }
   else printf("\n ---------------------------\n    MOVIMIENTO INVALIDO\n ---------------------------\n");
