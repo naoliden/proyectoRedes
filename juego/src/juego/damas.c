@@ -8,6 +8,7 @@
 #include <stdlib.h>
 // Libreria para bool
 #include <stdbool.h>
+#include <string.h>
 
 // Funcion que inicializa el juego
 Game* init_game(){
@@ -42,6 +43,20 @@ void board_print(Game* juego) {
   printf("Hay %d piezas blancas en el tablero\n", juego->c_piezaso);
   printf("Hay %d piezas negras en el tablero\n", juego->c_piezasx);
   printf("\n");
+
+  //TABLERO EN STRING SIN ERRORES
+  char tablero [64];
+  int i = 0;
+  for (int row=0; row<8; row++){
+    for (int col=0; col<8; col++){
+      tablero[i] = (char)juego -> board[row][col];
+      i++;
+    }
+  }
+  tablero[64] = '\0';
+  printf("%s\n\n", tablero);
+
+  // TABLERO EN MATRIZ
   printf("   | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |\n");
   printf("------------------------------------\n");
   for (int row=0; row<8; row++){

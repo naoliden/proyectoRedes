@@ -17,8 +17,6 @@ typedef struct game {
   int winner;
   int count; // contador que indica la cantidad de movimientos relizados sin comer piezas y con empate
 
-  // indica la cantidad de movimientos realizados cuando estan
-
   // cantidad de piezas blancas (o O) en el tablero
   int c_piezaso;
   // cantidad de piezas negras (x, X) en el tablero
