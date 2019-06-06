@@ -18,6 +18,8 @@ typedef struct loggen{
   int index;
 }loggen;
 
+
+
 typedef struct mail{
   char id;
   char length;
