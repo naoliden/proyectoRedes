@@ -8,7 +8,6 @@
 
 #define PORT 4455
 
-
 typedef struct my_msg{
   char id;
   char length;
@@ -20,7 +19,6 @@ typedef struct my_msg{
     new->msg = malloc(512*sizeof(char));
     return new;
   }
-
 int initializeClient(char* ip, int port){
     int clientSocket;
     //char buffer[1024];
@@ -50,7 +48,6 @@ int initializeClient(char* ip, int port){
 
     return clientSocket;
 }
-
 my_msg * receiveMessage(int socket){
     char ID;
     recv(socket, &ID, 1, 0);
@@ -66,25 +63,11 @@ my_msg * receiveMessage(int socket){
     return m;
 }
 
-int compare_strings(char a[], char b[])
-{
-    int c = 0;
-    while (a[c] == b[c])
-    {
-        if (a[c] == '\0' || b[c] == '\0')
-        break;
-        c++;
-    }
-    if (a[c] == '\0' && b[c] == '\0')
-    return 0;
-    else
-    return -1;
-}
-
 void sendMessage(int socket, char* package){
     int payloadSize = package[1];
     send(socket, package, 2 + payloadSize, 0);
 }
+
 int calculate_length(char * input){
     int i = 0;
     while (1){
@@ -93,11 +76,6 @@ int calculate_length(char * input){
         }
         i++;
     }
-}
-void print_package(char * package){
-    printf("   Paquete es: ");
-    printf("%d ", package[0]); printf("%d ", package[1]); printf("%s\n", &package[2]);
-
 }
 void setup(int socket){
 
@@ -116,8 +94,8 @@ whats_your_nickname = receiveMessage(socket);
 printf("%s \n", whats_your_nickname->msg);
 
 //Client writes the nickname
-char client_nickname[100];
-scanf("%s", client_nickname);
+char client_nickname[1024];
+scanf("%[^\n]", client_nickname);
 int nickname_ln = calculate_length(client_nickname);
 
 //Create package to send
@@ -125,7 +103,6 @@ char pack_nickname[2+nickname_ln];
 pack_nickname[0] = 4;
 pack_nickname[1] = nickname_ln;
 strcpy(&pack_nickname[2], client_nickname);
-print_package(pack_nickname);
 sendMessage(socket, pack_nickname);
 
 //PRINT NICKENAME OF OPPONENT
@@ -133,34 +110,20 @@ my_msg * nickname_msg = create_msg();
 nickname_msg = receiveMessage(socket);
 printf("%s\n", nickname_msg->msg);
 
+
 my_msg * game_is_starting = create_msg();
 game_is_starting = receiveMessage(socket);
 printf("%s\n", game_is_starting->msg);
 
-// who is first
-
-my_msg * who_is_first = create_msg();
-who_is_first = receiveMessage(socket);
-
-if((int) who_is_first->msg == 1){
-  printf("YOU START THE GAME \n");
+//free(nickname_msg);
+//free(whats_your_nickname);
+//free(conection_msg);
+//free(game_is_starting);
 }
-else{
-  printf("THE OPPONENT START THE GAME \n");
-}
-
-
-free(nickname_msg);
-free(whats_your_nickname);
-free(conection_msg);
-free(game_is_starting);
-free(who_is_first);
-
-}
-
 void chat_with_friends(int socket){
   printf("WRITE IN YOUR MESSAGE \n");
   char buffer[1024];
+  // want to read in a whole line
   scanf("%s", buffer);
   int chat_length = calculate_length(buffer);
   char new_chat[2 + chat_length];
@@ -168,19 +131,25 @@ void chat_with_friends(int socket){
   new_chat[1] = chat_length;
   strcpy(&new_chat[2], buffer);
   sendMessage(socket, new_chat);
+
+  printf("YOUR MESSAGE HAS BEEN SENT. START PLAYING\n");
   }
+void do_not_want_to_chat(int socket){
+  char chat_msg[4];
+  chat_msg[0] = 19;
+  chat_msg[1] = 0;
+  sendMessage(socket, chat_msg);
+  }
+void receive_score(int socket){
+
+  my_msg * score = create_msg();
+  score = receiveMessage(socket);
+  printf("%s \n", score->msg);
+}
 
 void see_the_board(int socket){
-
-    char see_board_message[2];
-    see_board_message[0] = 9;
-    see_board_message[1] = 2;
-    sendMessage(socket, see_board_message);
-
     my_msg * playboard = create_msg();
     playboard = receiveMessage(socket);
-    printf("%s \n", playboard->msg);
-
     int index = 0;
     printf("   | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |\n");
     printf("------------------------------------\n");
@@ -194,23 +163,35 @@ void see_the_board(int socket){
       printf("\n------------------------------------\n");
     }
 
-  }
+    //free(playboard);
 
+  }
 void move_my_piece(int socket){
+
   int move = 1;
 
   while(move){
     int c_row, c_col, n_row, n_col;
-    printf("Type the location of the piece you want to move");
-    scanf("%d, %d", &c_row, &c_col);
-    printf("\n");
 
-    printf("Type in the location you want to move to");
-    scanf("%d, %d", &n_row, &n_col);
+    printf("Type in current ROW of the piece you want to move");
+    scanf("%d", &c_row);
+
+    printf("\n");
+    printf("Type in current COLOUMN of the piece you want to move");
+    scanf("%d", &c_col);
+
+    printf("Type in new ROW of the piece you want to move");
+    scanf("%d", &n_row);
+
+    printf("\n");
+    printf("Type in new COLOUMN of the piece you want to move");
+    scanf("%d", &n_col);
+
 
     char my_move[6];
     my_move[0] = 10;
     my_move[1] = 6;
+
     my_move[2] = c_row;
     my_move[3] = c_col;
     my_move[4] = n_row;
@@ -223,82 +204,135 @@ void move_my_piece(int socket){
     my_msg * valid_move = create_msg();
     valid_move = receiveMessage(socket);
 
-
     if(valid_move->id == (unsigned char)11){
-      printf("INVALID MOVE - TRY AGAIN");
+      printf("INVALID MOVE - TRY AGAIN \n");
+      see_the_board(socket);
     }
 
-    else if(valid_move->id ==  (unsigned char)12){
+    if(valid_move->id == (unsigned char)12){
       printf("MOVED YOUR PIECE TO THE NEW POSITION. WELL DONE");
+      //free(valid_move);
       move = 0;
-      free(valid_move);}
     }
+
 
   }
-
+}
 void view_score(int socket){
   my_msg * score = create_msg();
   score = receiveMessage(socket);
-  printf("The score is %s: \n", score->msg);
+  printf(" %s \n", score->msg);
+  //free(score);
 
+}
+void opponents_turn(int socket){
+  view_score(socket);
+}
+void end_game(int socket){
+  printf("The Game has ended\n");
+  see_the_board(socket);
+  my_msg * winner = create_msg();
+  winner = receiveMessage(socket);
+  printf("%s\n",winner->msg);
+  //free(winner);
+
+  view_score(socket);
+
+  my_msg * want_to_play_more = create_msg();
+  want_to_play_more = receiveMessage(socket);
+  printf("%s\n", want_to_play_more->msg);
+  //free(want_to_play_more);
+
+  int input;
+  scanf("%d", &input);
+
+  while(input != 1 && input != 2){
+    printf(" [Y = 1, N = 0]\n");
+    scanf("%d", &input);}
+
+  char play_more[4];
+  play_more[0] = 16;
+  play_more[1] = 0;
+  play_more[2] = input;
+  sendMessage(socket, play_more);
+}
+
+void my_turn(int socket){
+  printf("It is your turn to play. \n");
+  view_score(socket);
+
+  my_msg * new_message = create_msg();
+  new_message = receiveMessage(socket);
+
+  if(new_message->id == 19){
+    printf("ALERT NEW MESSAGE: WANT:\n");
+    printf("%s\n", new_message->msg);
+    my_msg * my_options = create_msg();
+    my_options = receiveMessage(socket);
+    printf("%s\n", my_options->msg);
+  }
+
+    else {
+      printf("%s\n", new_message->msg);
+  }
+
+  printf("Type 3 to exit the game\n");
+
+  int my_option;
+  scanf("%d", &my_option);
+
+  while(my_option != 1 && my_option != 2 && my_option != 3){
+    printf("Input either [1:Y] [2:N] or [3:exit]");
+    scanf("%d", &my_option);
+  }
+
+  if(my_option == 1){
+    chat_with_friends(socket);
+    see_the_board(socket);
+    move_my_piece(socket);
+  }
+
+else if (my_option == 2){
+    do_not_want_to_chat(socket);
+    see_the_board(socket);
+    move_my_piece(socket);
+  }
+
+else if(my_option == 3){
+  char end_connection[4];
+  end_connection[0] = 17;
+  end_connection[1] = 1;
+  sendMessage(socket, end_connection);
+
+}
 }
 
 int main(){
+    int clientSocket = initializeClient("10.201.153.239", PORT);
     int exit = 1;
-    int clientSocket = initializeClient("10.201.149.195", PORT);
-    // SAYING HI TO THE SERVER, SENDING NICKNAME, GETTING THE OPPONENT ETC
     setup(clientSocket);
 
     while(exit){
-      //RECEIEVE OPTIONS FROM SERVER
-      my_msg * new_message = create_msg();
-      new_message = receiveMessage(clientSocket);
+      my_msg * message = create_msg();
+      message = receiveMessage(clientSocket);
 
-      // IS THE INBOX FULL OR NOT
-      if(new_message->id == 19){
-        printf("ALERT NEW MESSAGE: WANT TO RESPOND TYPE 1: \n");
-        printf("%s\n", new_message->msg);
-        my_msg * my_options = create_msg();
-        my_options = receiveMessage(clientSocket);
-        printf("%s\n", my_options->msg);
-        free(my_options);}
+      if(message->id == (unsigned char)13){
+        end_game(clientSocket);}
 
-      // RECEIEVE OPTIONS IF THE LAST MSG WAS A CHAT MSG
-      else{
-        printf("%s\n", new_message->msg);}
+      if(message->id == (unsigned char)8){
+        int turn = atoi(message->msg);
 
-      // ASKING INPUT FROM THE USER
-      int my_option;
-      printf("TYPE IN YOUR OPTION?");
-      scanf("%d", &my_option);
+        if(turn == 1){
+          my_turn(clientSocket);
+        }
 
+          else if(turn == 2){
+              opponents_turn(clientSocket);
+            }
+  }
 
-      if(my_option == 1){
-        chat_with_friends(clientSocket);
-      }
-
-
-      else if (my_option == 2){
-        see_the_board(clientSocket);
-      }
-
-
-      else if(my_option == 3){
-        view_score(clientSocket);
-
-      }
-
-      else if(my_option == 4){
-        see_the_board(clientSocket);
-        move_my_piece(clientSocket);
-
-      }
-      else if(my_option == 5){
-        printf("EXITING THE GAME");
+      if(message->id == (unsigned char)17){
+        printf("Connection lost. Game ended");
         exit = 0;
-      }
-
-      else{
-        printf("INPUT IS EITHER 1, 2, 3, 4 OR 5 YOU STUPID!! HOW MANY TIMES MUST I TELL YOU.");
-      }
-}}
+      }}
+}
