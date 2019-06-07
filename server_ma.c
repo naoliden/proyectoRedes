@@ -10,15 +10,13 @@
 #include "math.h"
 #include "damas.h"
 
-#define IP "10.201.153.239"
-#define PORT 4455
+#define IP "10.201.157.249"
+#define PORT 8080
 
 typedef struct loggen{
   char * big_log;
   int index;
 }loggen;
-
-
 
 typedef struct mail{
   char id;
@@ -28,10 +26,20 @@ typedef struct mail{
 
 int c1, c2;
 char nn1[256], nn2[256], nn[256];
+char o, x;
 Game* mi_juego;
 mail * innbox_mail;
 loggen * the_log;
 int innbox;
+int iSetOption = 1;
+
+char modulo(char a, char b){
+  char m = a%b;
+  if (m<0){
+    m = (b<0) ? m-b:m+b;
+  }
+  return m;
+}
 
 void create_log(){
   the_log = malloc(sizeof(loggen));
@@ -47,8 +55,27 @@ int calculate_length(char * input){
     i++;
   }
 }
+void create_log_entry(char * action){
+  //get timestamp
+  char timestamp[30];
+  struct timeval tv;
+  time_t curtime;
+
+ gettimeofday(&tv, 0);
+ curtime=tv.tv_sec;
+ strftime(timestamp,30,"%m-%d-%Y %T.",localtime(&curtime));
+
+ // What happened?
+ char entry[256];
+ strcpy(entry, timestamp);
+ strcat(entry, action);
+ the_log->index = the_log->index + strlen(entry);
+ printf("LOG ENTRY: %s\n", entry);
+ memcpy(&the_log->big_log[the_log->index - strlen(entry)], entry, strlen(entry));
+}
 void sendMessage(int socket, char* package){
   int payloadSize = package[1];
+  create_log_entry(package);
   send(socket, package, 2 + payloadSize, 0);
 }
 mail* create_mail(){
@@ -87,9 +114,14 @@ mail* receiveMessage(int socket){
   m->length = payloadSize;
   strcpy(m->msg, messa);
 
+  char save[2+m->length];
+  save[0] = m->id;
+  save[1] = m->length;
+  strcpy(&save[2], m->msg);
+  create_log_entry(save);
+
   return m;
 }
-
 void initializeServer(char* ip, int port){
   int welcomeSocket;
 	struct sockaddr_in serverAddr;
@@ -111,7 +143,7 @@ void initializeServer(char* ip, int port){
 	serverAddr.sin_addr.s_addr = inet_addr(ip);
 	/* Setear todos los bits del padding en 0 */
 	memset(serverAddr.sin_zero, '\0', sizeof serverAddr.sin_zero);
-
+  setsockopt(welcomeSocket, SOL_SOCKET, SO_REUSEADDR, (char*)&iSetOption, sizeof(iSetOption));
 	/*---- Bindear la struct al socket ----*/
 	bind(welcomeSocket, (struct sockaddr *) &serverAddr, sizeof(serverAddr));
 
@@ -201,7 +233,6 @@ void send_scores(){
   sendMessage(c1, scores);
   sendMessage(c2, scores);
 }
-
 void send_board(int socket){
   char * boardstring = malloc(64*sizeof(char));
   int index = 0;
@@ -218,7 +249,6 @@ void send_board(int socket){
   sendMessage(socket, bord);
 
 }
-
 void send_menu(int socket){
   int msgLen = calculate_length("Do you want to send a chat message? [1=y/2=n]");
   char p[2+msgLen];
@@ -227,17 +257,40 @@ void send_menu(int socket){
   strcpy(&p[2], "Do you want to send a chat message? [1=y/2=n]");
   sendMessage(socket, p);
 }
+int killed_someone(int socket, int num_opponents){
+  if (socket == c1 && num_opponents != mi_juego->c_piezasx){
+    return 1;
+  }
+  else if(socket == c2 && num_opponents != mi_juego->c_piezaso){
+    return 1;
+  }
+  else{
+    return 0;
+  }
+
+
+}
 void make_move(int socket, char * my_nn, char * your_nn ){
 
   mail * answer = create_mail();
   answer = receiveMessage(socket);
-  printf("id: %d, msg: %s\n", answer->id, answer->msg);
 
-  if(answer->length>0){
-    printf("HEI?\n");
+  if(answer->id == 19 && answer->length == 0){
+    printf("NO NEW MESSAGE\n");
+  }
+  if(answer->id == 19 && answer->length>0){
     innbox_mail->msg = answer->msg;
     innbox_mail->length = answer->length;
     innbox = 1;
+  }
+  else if(answer->id == 17){
+    int len = calculate_length("Game ended by one of the players");
+    char quit[2+len];
+    quit[0] = 21;
+    quit[1] = len;
+    strcpy(&quit[2], "Game ended by one of the players");
+    sendMessage(c1, quit);
+    sendMessage(c2, quit);
   }
   // SEND BOARD
   send_board(socket);
@@ -253,8 +306,23 @@ void make_move(int socket, char * my_nn, char * your_nn ){
   row2 = (int)get_move->msg[2] -1;
   col2 = (int)get_move->msg[3] -1;
 
-  while (v != 12){
-    if(v != 0){
+  int num_opponents;
+  if(socket == c1){
+    num_opponents = mi_juego->c_piezasx;
+  }
+  else{
+    num_opponents = mi_juego->c_piezaso;
+  }
+  int counter = 1;
+  while (v != 12 | counter == 1){
+    printf("ROW: %d, COL: %d, ROW: %d, COL: %d\n", row1, col1, row2, col2 );
+    v = do_move(mi_juego, row1, col1, row2, col2);
+    printf("V=%d\n", v);
+    counter = killed_someone(socket, num_opponents);
+    printf("COUNTER [1-killed/0-not killed]: %d\n", counter);
+
+    // IF INVALID MOVE
+    if(v == 11){
       int msgLen = calculate_length("Invalid move. Please try again\n");
       char invalid[2+msgLen];
       invalid[0] = 11;
@@ -273,27 +341,54 @@ void make_move(int socket, char * my_nn, char * your_nn ){
       row2 = (int)new_move->msg[2] -1;
       col2 = (int)new_move->msg[3] -1;
     }
-    printf("ROW: %d, COL: %d, ROW: %d, COL: %d\n", row1, col1, row2, col2 );
-    v = do_move(mi_juego, row1, col1, row2, col2);
-    printf("V=%d\n", v);
+    // IF VALID MOVE AND KILLED SOMEONE
+    else if(v == 12 && counter == 1){
+      num_opponents--;
+      int len = calculate_length("K");
+      char killedit[2+len];
+      killedit[0] = 12;
+      killedit[1] = len;
+      strcpy(&killedit[2], "K");
+      sendMessage(socket, killedit);
+
+      // SEND BOARD AGAIN
+      send_board(socket);
+
+      // GET NEW MOVE
+      mail* new_move = create_mail();
+      new_move = receiveMessage(socket);
+      row1 = (int)new_move->msg[0] -1;
+      col1 = (int)new_move->msg[1] -1;
+      row2 = (int)new_move->msg[2] -1;
+      col2 = (int)new_move->msg[3] -1;
+    }
   }
+
   int msgLen = calculate_length("Valid move.\n");
   char valid[2+msgLen];
   valid[0] = 12;
   valid[1] = msgLen;
   strcpy(&valid[2], "Valid move.\n");
-  printf("SENDING VALID MOVE MESSAGE\n");
   sendMessage(socket, valid);
 }
 void play_game(){
+
   // GET READY TO START GAME
-  int msgLeng = calculate_length("Time to start playing");
-  char start_playing[2+msgLeng];
-  start_playing[0] = 6;
-  start_playing[1] = msgLeng;
-  strcpy(&start_playing[2], "Time to start playing");
-  sendMessage(c1, start_playing);
-  sendMessage(c2, start_playing);
+  char letsplay[] = "Time to start playing.\nYou are: O";
+  int msgLeng = calculate_length(letsplay);
+  char start_playing_1[2+msgLeng];
+  start_playing_1[0] = 6;
+  start_playing_1[1] = msgLeng;
+  strcpy(&start_playing_1[2], letsplay);
+  sendMessage(c1, start_playing_1);
+
+  char letsgo[] = "Time to start playing.\nYou are: X";
+  msgLeng = calculate_length(letsgo);
+  char start_playing_2[2+msgLeng];
+  start_playing_2[0] = 6;
+  start_playing_2[1] = msgLeng;
+  strcpy(&start_playing_2[2], letsgo);
+  sendMessage(c2, start_playing_2);
 
   mi_juego = init_game();
   int socket, msgLen;
@@ -310,6 +405,7 @@ void play_game(){
       socket = c1;
       my_nn = nn1;
       your_nn = nn2;
+
       // WHO's TURN
       printf("SENDING WHOS TURN IT IS\n");
       char you_start[2 + calculate_length("1")];
@@ -469,28 +565,22 @@ void end_game(){
 
 }
 
-void create_log_entry(char * action){
-  //get timestamp
-  char timestamp[30];
-  struct timeval tv;
-  time_t curtime;
-
- gettimeofday(&tv, 0);
- curtime=tv.tv_sec;
- strftime(timestamp,30,"%m-%d-%Y %T.",localtime(&curtime));
-
- // What happened?
- char entry[256];
- strcpy(entry, timestamp);
- strcat(entry, action);
- the_log->index = the_log->index + strlen(entry);
- printf("LOG ENTRY: %s\n", entry);
- memcpy(&the_log->big_log[the_log->index - strlen(entry)], entry, strlen(entry));
+void  INThandler(int sig){
+  char  c;
+  signal(sig, SIG_IGN);
+  printf("OUCH, presionaste Ctrl-C?\nRealmente quieres salir? [y/n] ");
+	c = getchar();
+	if (c == 'y' || c == 'Y'){
+    // Send disconnet_message();
+    exit(0);
+  }
 }
 
 int main (){
+  signal(SIGINT, INThandler);
   create_log();
   initializeServer(IP, PORT);
+
 
   // PREPARE FOR GAME
   strcpy(nn1,set_up(c1));
@@ -501,7 +591,7 @@ int main (){
   // PLAY GAME
   play_game();
   end_game();
-
+  printf("LOG:\n%s\n", the_log->big_log);
   free(mi_juego);
   free(innbox_mail);
 }
