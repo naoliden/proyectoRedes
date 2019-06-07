@@ -6,7 +6,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define PORT 4455
+#define PORT 8080
 
 typedef struct my_msg{
   char id;
@@ -21,6 +21,7 @@ typedef struct my_msg{
   }
 int initializeClient(char* ip, int port){
     int clientSocket;
+    int mari = 1;
     //char buffer[1024];
     struct sockaddr_in serverAddr;
     socklen_t addr_size;
@@ -28,6 +29,7 @@ int initializeClient(char* ip, int port){
     /*---- Creación del Socket. Se pasan 3 argumentos ----*/
     /* 1) Internet domain 2) Stream socket 3) Default protocol (TCP en este caso) */
     clientSocket = socket(PF_INET, SOCK_STREAM, 0);
+    setsockopt(clientSocket, SOL_SOCKET, SO_REUSEADDR, (char*)&mari, sizeof(mari));
 
     /*---- Configuración de la estructura del servidor ----*/
     /* Address family = Internet */
@@ -63,6 +65,46 @@ my_msg * receiveMessage(int socket){
     return m;
 }
 
+
+void recieve_image(int socket){
+
+  unsigned char packet_size = 128;
+  int bufferSize = packet_size + 4;
+	FILE * f = fopen("new_photo.jpg", "r+b");
+	char ID;
+	char total_packets;
+	char current_payload;
+
+	while(1){
+      char payload_size = 0;
+			char * photo_buffer = calloc(bufferSize, sizeof(char));
+
+			recv(socket, photo_buffer, bufferSize, 0);
+
+      memcpy(&ID, &photo_buffer[0], 1);
+			memcpy(&total_packets, &photo_buffer[1], 1);
+			memcpy(&current_payload, &photo_buffer[2], 1);
+
+			memcpy(&payload_size, &photo_buffer[3], 1);
+
+			char * writer_buffer = calloc(payload_size, sizeof(char));
+			memcpy(writer_buffer, &photo_buffer[4], payload_size);
+
+			fseek(f, current_payload * payload_size, SEEK_SET);
+			fwrite(writer_buffer, packet_size, 1, f);
+
+			free(writer_buffer);
+			free(photo_buffer);
+
+			if (current_payload == total_packets){
+				break;
+			}
+
+	}
+
+	fclose(f);
+}
+
 void sendMessage(int socket, char* package){
     int payloadSize = package[1];
     send(socket, package, 2 + payloadSize, 0);
@@ -78,7 +120,6 @@ int calculate_length(char * input){
     }
 }
 void setup(int socket){
-
 //SEND SETUP MESSAGE
 char package_connect[1];
 package_connect[0] = 1;
@@ -89,7 +130,6 @@ conection_msg = receiveMessage(socket);
 printf("%s\n", conection_msg->msg);
 
 my_msg * whats_your_nickname = create_msg();
-
 whats_your_nickname = receiveMessage(socket);
 printf("%s \n", whats_your_nickname->msg);
 
@@ -122,17 +162,25 @@ printf("%s\n", game_is_starting->msg);
 }
 void chat_with_friends(int socket){
   printf("WRITE IN YOUR MESSAGE \n");
-  char buffer[1024];
-  // want to read in a whole line
-  scanf("%s", buffer);
-  int chat_length = calculate_length(buffer);
+
+  char * chat_message = calloc(255, sizeof(char));
+  char * sentence = calloc(255,sizeof(char));
+
+  scanf("%s", chat_message);
+  memcpy(sentence, chat_message, 255);
+  int chat_length = calculate_length(sentence);
+
   char new_chat[2 + chat_length];
   new_chat[0] = 19;
   new_chat[1] = chat_length;
-  strcpy(&new_chat[2], buffer);
-  sendMessage(socket, new_chat);
 
+  strcpy(&new_chat[2], sentence);
+  sendMessage(socket, new_chat);
   printf("YOUR MESSAGE HAS BEEN SENT. START PLAYING\n");
+
+  free(chat_message);
+  free(sentence);
+
   }
 void do_not_want_to_chat(int socket){
   char chat_msg[4];
@@ -151,11 +199,11 @@ void see_the_board(int socket){
     my_msg * playboard = create_msg();
     playboard = receiveMessage(socket);
     int index = 0;
-    printf("   | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |\n");
+    printf("   | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |\n");
     printf("------------------------------------\n");
 
     for (int row=0; row<8; row++){
-      printf(" %d |", row);
+      printf(" %d |", row+1);
       for (int col=0; col<8; col++){
         printf(" %c |", playboard->msg[index]);
         index++;
@@ -173,20 +221,17 @@ void move_my_piece(int socket){
   while(move){
     int c_row, c_col, n_row, n_col;
 
-    printf("Type in current ROW of the piece you want to move");
+    printf("Type in current ROW of the piece you want to move ");
     scanf("%d", &c_row);
-
     printf("\n");
-    printf("Type in current COLOUMN of the piece you want to move");
+    printf("Type in current COLOUMN of the piece you want to move ");
     scanf("%d", &c_col);
-
-    printf("Type in new ROW of the piece you want to move");
-    scanf("%d", &n_row);
-
     printf("\n");
-    printf("Type in new COLOUMN of the piece you want to move");
+    printf("Type in new ROW of the piece you want to move ");
+    scanf("%d", &n_row);
+    printf("\n");
+    printf("Type in new COLOUMN of the piece you want to move ");
     scanf("%d", &n_col);
-
 
     char my_move[6];
     my_move[0] = 10;
@@ -210,14 +255,21 @@ void move_my_piece(int socket){
     }
 
     if(valid_move->id == (unsigned char)12){
-      printf("MOVED YOUR PIECE TO THE NEW POSITION. WELL DONE");
-      //free(valid_move);
-      move = 0;
+
+      if(strcmp(valid_move->msg, "K")==0){
+        printf("YOU KILLED SOMEONE! ITS YOUR TURN AGAIN. \n");
+        see_the_board(socket);
+        move_my_piece(socket);
+      }
+
+      else{
+          printf("MOVED YOUR PIECE TO THE NEW POSITION. WELL DONE");
+          move = 0;}
     }
-
-
   }
 }
+
+
 void view_score(int socket){
   my_msg * score = create_msg();
   score = receiveMessage(socket);
@@ -265,7 +317,7 @@ void my_turn(int socket){
   new_message = receiveMessage(socket);
 
   if(new_message->id == 19){
-    printf("ALERT NEW MESSAGE: WANT:\n");
+    printf("ALERT NEW MESSAGE\n");
     printf("%s\n", new_message->msg);
     my_msg * my_options = create_msg();
     my_options = receiveMessage(socket);
@@ -303,12 +355,11 @@ else if(my_option == 3){
   end_connection[0] = 17;
   end_connection[1] = 1;
   sendMessage(socket, end_connection);
-
-}
+  }
 }
 
 int main(){
-    int clientSocket = initializeClient("10.201.153.239", PORT);
+    int clientSocket = initializeClient("10.201.157.249", PORT);
     int exit = 1;
     setup(clientSocket);
 
