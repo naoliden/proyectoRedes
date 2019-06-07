@@ -5,6 +5,8 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
+#include <signal.h>
+
 
 #define PORT 8080
 
@@ -358,8 +360,24 @@ else if(my_option == 3){
   }
 }
 
+int globalsocket;
+
+void INThandler(int sig, int socket){
+
+		 char  c;
+		 signal(sig, SIG_IGN);
+		 printf("OUCH, presionaste Ctrl-C?\nRealmente quieres salir? [y/n] ");
+		 c = getchar();
+     char end_connection_2[4];
+		 if (c == 'y' || c == 'Y');
+			exit(0);
+		 }
+
+
 int main(){
     int clientSocket = initializeClient("10.201.157.249", PORT);
+    globalsocket=clientSocket;
+    signal(SIGINT, INThandler);
     int exit = 1;
     setup(clientSocket);
 
