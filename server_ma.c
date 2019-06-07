@@ -363,7 +363,6 @@ void make_move(int socket, char * my_nn, char * your_nn ){
       col2 = (int)new_move->msg[3] -1;
     }
   }
-
   int msgLen = calculate_length("Valid move.\n");
   char valid[2+msgLen];
   valid[0] = 12;
