@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <arpa/inet.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <string.h>
@@ -362,7 +363,7 @@ else if(my_option == 3){
 
 int globalsocket;
 
-void INThandler(int sig, int socket){
+void INThandler(int sig){
 
 		 char  c;
 		 signal(sig, SIG_IGN);

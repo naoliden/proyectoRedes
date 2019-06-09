@@ -104,7 +104,7 @@ bool valid(Game* juego, int row1, int col1, int row2, int col2){
 }
 
 //realiza el movimiento, primero valida si es o no correcto
-void do_move(Game* juego, int row1, int col1, int row2, int col2){
+int do_move(Game* juego, int row1, int col1, int row2, int col2){
   // primero reviso si es valido el movimiento
   if (!juego->termino && valid(juego, row1, col1, row2, col2)){
     int next = 1; // es 1 si no come una ficha y le toca al siguente, y 0 si come una ficha, por lo que puede seguir jugando
@@ -163,8 +163,12 @@ void do_move(Game* juego, int row1, int col1, int row2, int col2){
 
     //mostramos tablero
     board_print(juego);
+    return 12;
   }
-  else printf("\n ---------------------------\n    MOVIMIENTO INVALIDO\n ---------------------------\n");
+  else {
+    printf("\n ---------------------------\n    MOVIMIENTO INVALIDO\n ---------------------------\n");
+    return 11;
+  }
 }
 
 // Indica si existen movimientos validos para el jugador que le toca
