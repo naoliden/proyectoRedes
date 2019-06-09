@@ -11,7 +11,7 @@
 #include "math.h"
 #include "damas.h"
 
-#define IP "10.201.157.249"
+#define IP "192.168.0.21"
 #define PORT 8080
 
 typedef struct loggen{
@@ -47,6 +47,7 @@ void create_log(){
   the_log->big_log = malloc(4096*sizeof(char));
   the_log->index = 0;
 }
+
 int calculate_length(char * input){
   int i = 0;
   while (1){
@@ -56,6 +57,7 @@ int calculate_length(char * input){
     i++;
   }
 }
+
 void create_log_entry(char * action){
   //get timestamp
   char timestamp[30];
@@ -74,16 +76,19 @@ void create_log_entry(char * action){
  printf("LOG ENTRY: %s\n", entry);
  memcpy(&the_log->big_log[the_log->index - strlen(entry)], entry, strlen(entry));
 }
+
 void sendMessage(int socket, char* package){
   int payloadSize = package[1];
   create_log_entry(package);
   send(socket, package, 2 + payloadSize, 0);
 }
+
 mail* create_mail(){
   mail* new = malloc(sizeof(mail));
   new->msg = malloc(512*sizeof(char));
   return new;
 }
+
 mail* receiveMessage(int socket){
   printf("Waiting message... \n");
 
@@ -123,6 +128,7 @@ mail* receiveMessage(int socket){
 
   return m;
 }
+
 void initializeServer(char* ip, int port){
   int welcomeSocket;
 	struct sockaddr_in serverAddr;
