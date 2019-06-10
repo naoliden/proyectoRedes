@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <arpa/inet.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <string.h>
@@ -363,16 +362,17 @@ else if(my_option == 3){
 
 int globalsocket;
 
-void  INThandler(int sig){
-  char  c;
-  signal(sig, SIG_IGN);
-  printf("OUCH, presionaste Ctrl-C?\nRealmente quieres salir? [y/n] ");
-	c = getchar();
-	if (c == 'y' || c == 'Y'){
-    // Send disconnet_message();
-    exit(0);
-  }
-}
+void INThandler(int sig, int socket){
+
+		 char  c;
+		 signal(sig, SIG_IGN);
+		 printf("OUCH, presionaste Ctrl-C?\nRealmente quieres salir? [y/n] ");
+		 c = getchar();
+     char end_connection_2[4];
+		 if (c == 'y' || c == 'Y');
+			exit(0);
+		 }
+
 
 int main(){
     int clientSocket = initializeClient("192.168.0.21", PORT);
@@ -395,14 +395,13 @@ int main(){
           my_turn(clientSocket);
         }
 
-        else if(turn == 2){
-            opponents_turn(clientSocket);
-          }
-      }
+          else if(turn == 2){
+              opponents_turn(clientSocket);
+            }
+  }
 
       if(message->id == (unsigned char)17){
         printf("Connection lost. Game ended");
         exit = 0;
-      }
-    }
+      }}
 }
