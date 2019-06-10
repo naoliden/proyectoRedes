@@ -8,7 +8,6 @@
 #include <signal.h>
 
 
-#define PORT 8080
 
 typedef struct my_msg{
   char id;
@@ -163,13 +162,18 @@ printf("%s\n", game_is_starting->msg);
 //free(game_is_starting);
 }
 void chat_with_friends(int socket){
-  printf("WRITE IN YOUR MESSAGE \n");
-
-  char * chat_message = calloc(255, sizeof(char));
+  //char * chat_message = calloc(255, sizeof(char));
   char * sentence = calloc(255,sizeof(char));
 
-  scanf("%s", chat_message);
-  memcpy(sentence, chat_message, 255);
+  printf("WRITE IN YOUR MESSAGE \n");
+
+  char my_message[255];
+	char temp;
+	scanf("%c",&temp);
+	scanf("%[^\n]",my_message);
+
+  //scanf("[]%s", chat_message);
+  memcpy(sentence, my_message, 255);
   int chat_length = calculate_length(sentence);
 
   char new_chat[2 + chat_length];
@@ -180,8 +184,8 @@ void chat_with_friends(int socket){
   sendMessage(socket, new_chat);
   printf("YOUR MESSAGE HAS BEEN SENT. START PLAYING\n");
 
-  free(chat_message);
-  free(sentence);
+  //free(chat_message);
+  //free(sentence);
 
   }
 void do_not_want_to_chat(int socket){
@@ -330,11 +334,9 @@ void my_turn(int socket){
       printf("%s\n", new_message->msg);
   }
 
-  printf("Type 3 to exit the game\n");
 
   int my_option;
   scanf("%d", &my_option);
-
   while(my_option != 1 && my_option != 2 && my_option != 3){
     printf("Input either [1:Y] [2:N] or [3:exit]");
     scanf("%d", &my_option);
@@ -357,6 +359,8 @@ else if(my_option == 3){
   end_connection[0] = 17;
   end_connection[1] = 1;
   sendMessage(socket, end_connection);
+  exit(0);
+
   }
 }
 
@@ -369,13 +373,31 @@ void INThandler(int sig, int socket){
 		 printf("OUCH, presionaste Ctrl-C?\nRealmente quieres salir? [y/n] ");
 		 c = getchar();
      char end_connection_2[4];
-		 if (c == 'y' || c == 'Y');
-			exit(0);
+		 if (c == 'y' || c == 'Y'){
+       exit(0);
+
+     }
+
 		 }
 
 
-int main(){
-    int clientSocket = initializeClient("10.201.157.249", PORT);
+int main(int argc, char *argv[]){
+  char IP[64];
+  int port;
+
+  if (argc > 1){
+    strcpy(IP, argv[2]);
+    port = atoi(argv[4]);
+  } else{
+    strcpy(IP, "10.201.162.185");
+    port = 8080;
+  }
+
+  printf("%s\n",IP);
+  printf("%d\n", port);
+
+
+    int clientSocket = initializeClient(IP, port);
     globalsocket=clientSocket;
     signal(SIGINT, INThandler);
     int exit = 1;
