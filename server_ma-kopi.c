@@ -10,9 +10,6 @@
 #include "math.h"
 #include "damas.h"
 
-#define IP "10.201.157.249"
-#define PORT 8080
-
 typedef struct loggen{
   char * big_log;
   int index;
@@ -24,8 +21,8 @@ typedef struct mail{
   char* msg;
 }mail;
 
-int c1, c2;
-char nn1[256], nn2[256], nn[256];
+int c1, c2, PORT;
+char nn1[256], nn2[256], nn[256], IP[64];
 char o, x;
 Game* mi_juego;
 mail * innbox_mail;
@@ -43,7 +40,7 @@ char modulo(char a, char b){
 
 void create_log(){
   the_log = malloc(sizeof(loggen));
-  the_log->big_log = malloc(4096*sizeof(char));
+  the_log->big_log = malloc(16384*sizeof(char));
   the_log->index = 0;
 }
 int calculate_length(char * input){
@@ -55,7 +52,7 @@ int calculate_length(char * input){
     i++;
   }
 }
-void create_log_entry(char * action){
+void create_log_entry(char* action){
   //get timestamp
   char timestamp[30];
   struct timeval tv;
@@ -65,11 +62,21 @@ void create_log_entry(char * action){
  curtime=tv.tv_sec;
  strftime(timestamp,30,"%m-%d-%Y %T.",localtime(&curtime));
 
- // What happened?
+ char id[10];
+ char size[10];
+ sprintf(id, "%d", action[0]);
+ sprintf(size, "%d", action[1]);
+
+ // ID
  char entry[256];
  strcpy(entry, timestamp);
- strcat(entry, action);
- the_log->index = the_log->index + strlen(entry);
+ strcat(entry, id);
+ strcat(entry, " ");
+ strcat(entry, size);
+ strcat(entry, " ");
+ strcat(entry, &action[2]);
+ strcat(entry, "\n");
+ the_log->index = the_log->index + strlen(entry) + 1;
  printf("LOG ENTRY: %s\n", entry);
  memcpy(&the_log->big_log[the_log->index - strlen(entry)], entry, strlen(entry));
 }
@@ -114,15 +121,15 @@ mail* receiveMessage(int socket){
   m->length = payloadSize;
   strcpy(m->msg, messa);
 
-  char save[2+m->length];
-  save[0] = m->id;
-  save[1] = m->length;
-  strcpy(&save[2], m->msg);
-  create_log_entry(save);
+  char send[256];
+  send[0] = ID;
+  send[1] = payloadSize;
+  strcpy(&send[2], messa);
+  create_log_entry(send);
 
   return m;
 }
-void initializeServer(char* ip, int port){
+void initializeServer(char* ip,int port){
   int welcomeSocket;
 	struct sockaddr_in serverAddr;
 	struct sockaddr_storage serverStorage;
@@ -291,6 +298,7 @@ void make_move(int socket, char * my_nn, char * your_nn ){
     strcpy(&quit[2], "Game ended by one of the players");
     sendMessage(c1, quit);
     sendMessage(c2, quit);
+    exit(0);
   }
   // SEND BOARD
   send_board(socket);
@@ -575,11 +583,16 @@ void  INThandler(int sig){
   }
 }
 
-int main (){
+int main (int argc, char *argv[]){
   signal(SIGINT, INThandler);
   create_log();
-  initializeServer(IP, PORT);
 
+  if (argc > 1){
+    strcpy(IP, argv[2]);
+  	PORT = atoi(argv[4]);
+  }
+  printf("IP: %s, PORT: %d\n", IP, PORT);
+  initializeServer(IP, PORT);
 
   // PREPARE FOR GAME
   strcpy(nn1,set_up(c1));
@@ -590,7 +603,12 @@ int main (){
   // PLAY GAME
   play_game();
   end_game();
-  printf("LOG:\n%s\n", the_log->big_log);
+  if(argc > 4){
+    FILE * f = fopen("log.txt", "w");
+    fwrite(the_log->big_log, the_log->index, 1, f);
+    fclose(f);
+  }
   free(mi_juego);
   free(innbox_mail);
+  free(the_log);
 }
