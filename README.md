@@ -21,6 +21,7 @@ SUPUESTOS:
 
 - Se ingresa un puerto y una IP válida al momento de ejecutar el servidor y el cliente
 - La asignación de nicknames y el juego no comienzan hasta que se hayan conectado dos jugadores al servidor
+- No funciona con clientes que usan threads para escuchar mensajes
 
 COMENTARIOS:
 
